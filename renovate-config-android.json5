@@ -1,0 +1,149 @@
+{
+  $schema: 'https://docs.renovatebot.com/renovate-schema.json',
+  description: 'Configuração do Renovate para Projetos Android',
+
+  extends: [
+    'config:best-practices',
+    'schedule:earlyMondays',
+  ],
+
+  constraints: {
+    java: '21'
+  },
+
+  enabledManagers: [
+    'github-actions',
+    'gradle-wrapper',
+    'gradle',
+  ],
+
+  vulnerabilityAlerts: {
+    labels: ['security'],
+    assignees: ['@diogo0liveira'],
+  },
+
+  timezone: 'America/Sao_Paulo',
+  dependencyDashboardTitle: 'Renovate — Dependencies',
+  dependencyDashboardAutoclose: true,
+  dependencyDashboard: true,
+  minimumReleaseAge: '3 days',
+  platformAutomerge: true,
+  automergeType: 'pr',
+  automerge: true,
+
+  branchPrefix: 'renovate/',
+  branchTopic: '{{groupSlug}}',
+  commitMessageAction: "update",
+  commitMessageTopic: "{{lowercase groupName}}",
+  commitMessageExtra: "",
+  commitBody: '{{#each upgrades}}{{depName}} - {{currentVersion}} to {{newVersion}}\n{{/each}}',
+
+  packageRules: [
+    {
+      // Bloquear (alpha, beta, rc, dev, etc.) globalmente
+      matchPackageNames: [
+        '*'
+      ],
+      allowedVersions: '!/-/',
+    },
+    {
+      // Bloquear o que não for explicitamente declarado
+      matchPackageNames: [
+        '*'
+      ],
+      enabled: false
+    },
+    {
+      reviewers: ['@diogo0liveira'],
+      matchUpdateTypes: ['major'],
+      automerge: false,
+    },
+    {
+      // Third-party Libraries
+      matchManagers: ['gradle'],
+      groupName: 'Third-party Libraries',
+      enabled: true
+    },
+    {
+      // Android Gradle Plugin (AGP)
+      matchPackageNames: [
+        'com.android.tools.build:gradle',
+        'com.android.dynamic-feature**',
+        'com.android.application**',
+        'com.android.settings**',
+        'com.android.library**',
+        'com.android.test**'
+      ],
+      commitMessageTopic: 'Android Gradle Plugin (AGP)',
+      branchTopic: 'android-plugins',
+      groupName: 'Android Gradle Plugin (AGP)',
+      groupSlug: 'android-plugins',
+      enabled: true
+    },
+    {
+      // Testing Libraries
+      matchManagers: ['gradle'],
+      matchPackageNames: [
+        'androidx.test.espresso:espresso-core',
+        'androidx.test.ext:junit',
+        'junit:junit'
+      ],
+      groupName: 'Testing Libraries',
+      enabled: true
+    },
+    {
+      // Android Libraries
+      matchManagers: ['gradle'],
+      matchPackageNames: [
+        'androidx.lifecycle:lifecycle-runtime',
+        'androidx.activity:activity-compose',
+        'androidx.core:core'
+      ],
+      groupName: 'Android Libraries',
+      enabled: true
+    },
+    {
+      // Jetpack Compose
+      matchManagers: ['gradle'],
+      matchPackageNames: [
+        '/^androidx\\.compose/'
+      ],
+      groupName: 'Jetpack Compose',
+      enabled: true
+    },
+    {
+      // Kotlin Ecosystem
+      matchManagers: ['gradle'],
+      matchPackageNames: [
+        '/^org\\.jetbrains\\.kotlin/'
+      ],
+      groupName: 'Kotlin Ecosystem',
+      enabled: true
+    },
+    {
+      // Foojay Resolver Convention
+      matchManagers: ['gradle'],
+      matchPackageNames: [
+        'org.gradle.toolchains.foojay-resolver-convention'
+      ],
+      groupName: 'Gradle Foojay Resolver',
+      enabled: true
+    },
+    {
+      // Gradle wrapper
+      matchManagers: [
+        'gradle-wrapper'
+      ],
+      groupName: 'Gradle',
+      enabled: true
+    },
+    {
+      // GitHub Actions
+      matchManagers: [
+        'github-actions'
+      ],
+      groupName: 'GitHub Actions',
+      enabled: true
+    }
+  ]
+}
