@@ -1,0 +1,127 @@
+{
+  $schema: 'https://docs.renovatebot.com/renovate-schema.json',
+  description: 'Configuração do Renovate para Projetos Android',
+  timezone: 'America/Sao_Paulo',
+
+  extends: [
+    'config:best-practices',
+    'schedule:earlyMondays',
+  ],
+
+  ignorePresets: [
+    'helpers:pinGitHubActionDigests',
+  ],
+
+  constraints: {
+    java: '26',
+  },
+
+  enabledManagers: [
+    'github-actions',
+    'gradle-wrapper',
+    'gradle',
+  ],
+
+  vulnerabilityAlerts: {
+    labels: ['security'],
+    assignees: ['@diogo0liveira'],
+  },
+
+  dependencyDashboard: false,
+  minimumReleaseAge: '3 days',
+  platformAutomerge: true,
+  automergeType: 'pr',
+  automerge: true,
+
+  branchPrefix: 'renovate/',
+  branchTopic: '{{groupSlug}}',
+  commitMessageAction: 'update',
+  commitMessageTopic: '{{lowercase groupName}}',
+  commitMessageExtra: '',
+  commitBody: '{{#each upgrades}}{{depName}} - {{currentVersion}} to {{newVersion}}\n{{/each}}',
+
+  packageRules: [
+    {
+      // Bloquear (alpha, beta, rc, dev, etc.) globalmente
+      matchPackageNames: ['*'],
+      allowedVersions: '!/-/',
+    },
+    {
+      // Major exige revisão manual e não faz automerge
+      matchUpdateTypes: ['major'],
+      reviewers: ['@diogo0liveira'],
+      automerge: false,
+    },
+    {
+      // Third-party Libraries
+      matchManagers: ['gradle'],
+      groupName: 'Third-party Libraries',
+    },
+    {
+      // Android Gradle Plugin (AGP)
+      matchPackageNames: ['com.android.**'],
+      commitMessageTopic: 'Android Gradle Plugin (AGP)',
+      branchTopic: 'android-plugins',
+      groupName: 'Android Gradle Plugin (AGP)',
+      groupSlug: 'android-plugins',
+    },
+    {
+      // Testing Libraries
+      matchManagers: ['gradle'],
+      matchPackageNames: [
+        'androidx.test:**',
+        'androidx.test.**',
+        'junit:junit',
+        'io.mockk:**',
+        'org.robolectric:**',
+      ],
+      groupName: 'Testing Libraries',
+    },
+    {
+      // Android Libraries
+      matchManagers: ['gradle'],
+      matchPackageNames: [
+        'androidx.appcompat:**',
+        'androidx.core:**',
+        'androidx.lifecycle:**',
+        'androidx.activity:**',
+      ],
+      groupName: 'Android Libraries',
+    },
+    {
+      // Jetpack Compose
+      matchManagers: ['gradle'],
+      matchPackageNames: ['/^androidx\\.compose/'],
+      groupName: 'Jetpack Compose',
+    },
+    {
+      // Kotlin Ecosystem
+      matchManagers: ['gradle'],
+      matchPackageNames: ['/^org\\.jetbrains\\.kotlin/'],
+      groupName: 'Kotlin Ecosystem',
+    },
+    {
+      // Foojay Resolver Convention
+      matchManagers: ['gradle'],
+      matchDepNames: ['org.gradle.toolchains.foojay-resolver-convention'],
+      groupName: 'Gradle Foojay Resolver',
+    },
+    {
+      // Gradle wrapper
+      matchManagers: ['gradle-wrapper'],
+      groupName: 'Gradle',
+    },
+    {
+      // GitHub Actions
+      matchManagers: ['github-actions'],
+      groupName: 'GitHub Actions',
+      allowedVersions: '/^v?\\d+\\.\\d+\\.\\d+$/',
+    },
+    {
+      // GitHub Actions: nunca atualizar digest/pin
+      matchManagers: ['github-actions'],
+      matchUpdateTypes: ['digest', 'pin', 'pinDigest'],
+      enabled: false,
+    },
+  ],
+}
