@@ -1,0 +1,69 @@
+{
+  $schema: 'https://docs.renovatebot.com/renovate-schema.json',
+  description: 'Configuração base do Renovate para projetos Docker.',
+  timezone: 'America/Sao_Paulo',
+  onboarding: false,
+
+  extends: [
+    'config:best-practices',
+    'workarounds:ubuntuDockerVersioning',
+  ],
+
+  schedule: [
+    '* 0-5 1 */3 *'
+  ],
+  enabledManagers: [
+    'dockerfile'
+  ],
+
+  dependencyDashboardTitle: 'Renovate — Dependencies',
+  dependencyDashboardAutoclose: true,
+  dependencyDashboard: true,
+  minimumReleaseAge: '3 days',
+  platformAutomerge: true,
+  automergeType: 'pr',
+  automerge: true,
+
+  branchPrefix: 'renovate/',
+  branchTopic: '{{groupSlug}}',
+  commitMessageAction: 'update',
+  commitMessageTopic: '{{lowercase groupName}}',
+  commitMessageExtra: '',
+  commitBody: '{{#each upgrades}}{{depName}} - {{currentVersion}} to {{newVersion}}\n{{/each}}',
+
+  vulnerabilityAlerts: {
+    labels: [
+      'security'
+    ],
+    assignees: [
+      '@diogo0liveira'
+    ],
+  },
+
+  packageRules: [
+    // Bloquear versões de pré-lançamento (alpha, beta, rc, etc.)
+    {
+      matchPackageNames: [
+        '*'
+      ],
+      allowedVersions: '!/-/',
+    },
+    // Atualizações Major exigem revisão manual e não fazem automerge
+    {
+      matchUpdateTypes: [
+        'major'
+      ],
+      reviewers: [
+        '@diogo0liveira'
+      ],
+      automerge: false,
+    },
+    // Agrupa atualizações de imagens do Dockerfile
+    {
+      matchManagers: [
+        'dockerfile'
+      ],
+      groupName: 'Docker Image',
+    },
+  ],
+}
