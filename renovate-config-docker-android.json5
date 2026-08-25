@@ -1,0 +1,135 @@
+{
+  $schema: 'https://docs.renovatebot.com/renovate-schema.json',
+  description: 'Configuração do Renovate para Projetos Docker Android',
+  extends: [
+    'local>diogo0liveira/.github:renovate-config-docker-base.json5',
+  ],
+  enabledManagers: [
+    'dockerfile',
+    'custom.regex',
+  ],
+  // Datasource customizados para extrair versões do repositório Google SDK.
+  // As transformTemplates usam JSONata (não Handlebars) — é o motor real usado
+  // pelo Renovate para customDatasource. Com format: 'plain', o corpo já chega
+  // aqui como { releases: [{version: <linha1>}, {version: <linha2>}, ...] },
+  // então o filtro/regex atua sobre releases[].version.
+  customDatasources: {
+    'android-cmdline-tools': {
+      defaultRegistryUrlTemplate: 'https://dl.google.com/android/repository/repository2-4.xml',
+      format: 'plain',
+      transformTemplates: [
+        '{"releases": $map($.releases[version ~> /commandlinetools-linux-([0-9]+)_latest\\.zip/], function($v){ {"version": $match($v.version, /commandlinetools-linux-([0-9]+)_latest\\.zip/).groups[0]} })}',
+      ],
+    },
+    'android-build-tools': {
+      defaultRegistryUrlTemplate: 'https://dl.google.com/android/repository/repository2-4.xml',
+      format: 'plain',
+      transformTemplates: [
+        '{"releases": $map($.releases[version ~> /<remotePackage path=\\"build-tools;([0-9.]+)\\">/], function($v){ {"version": $match($v.version, /<remotePackage path=\\"build-tools;([0-9.]+)\\">/).groups[0]} })}',
+      ],
+    },
+    // Rastreia o ARG android_api (ex: android-37,0 ≥ android-37.1).
+    // Filtra só "platforms;android-<numero>" — variantes -ext/-beta/CANARY
+    // ficam de fora naturalmente, pois o regex exige "> logo após o número.
+    'android-platforms': {
+      defaultRegistryUrlTemplate: 'https://dl.google.com/android/repository/repository2-4.xml',
+      format: 'plain',
+      transformTemplates: [
+        '{"releases": $map($.releases[version ~> /<remotePackage path=\\"platforms;android-([0-9.]+)\\">/], function($v){ {"version": $match($v.version, /<remotePackage path=\\"platforms;android-([0-9.]+)\\">/).groups[0]} })}',
+      ],
+    },
+  },
+  // customType movido para dentro de cada gestor (padrão atual) e fileMatch
+  // renomeado para managerFilePatterns (fileMatch está deprecated).
+  customManagers: [
+    {
+      customType: 'regex',
+      managerFilePatterns: [
+        '/(^|/)Dockerfile$/',
+      ],
+      matchStrings: [
+        'ARG sdk_tools_version=(?<currentValue>[0-9]+)'
+      ],
+      datasourceTemplate: 'custom.android-cmdline-tools',
+      depNameTemplate: 'cmdline-tools',
+      versioningTemplate: 'numeric',
+    },
+    {
+      customType: 'regex',
+      managerFilePatterns: [
+        '/(^|/)Dockerfile$/',
+      ],
+      matchStrings: [
+        'ARG android_build_tools=(?<currentValue>[0-9.]+)'
+      ],
+      datasourceTemplate: 'custom.android-build-tools',
+      depNameTemplate: 'build-tools',
+    },
+    // Acompanha ARG android_api (ex: android-37.0 -> android-37.1)
+    {
+      customType: 'regex',
+      managerFilePatterns: [
+        '/(^|/)Dockerfile$/',
+      ],
+      matchStrings: [
+        'ARG android_api=android-(?<currentValue>[0-9.]+)'
+      ],
+      datasourceTemplate: 'custom.android-platforms',
+      depNameTemplate: 'platforms',
+    },
+  ],
+  packageRules: [
+    // Agrupa atualizações da stack Ruby & Fastlane em um único PR (Mensal)
+    {
+      matchPackageNames: [
+        'fastlane',
+        'ruby',
+        'rbenv/ruby-build',
+        'bundler'
+      ],
+      schedule: [
+        'before 6am on the first day of the month'
+      ],
+      groupName: 'ruby & fastlane',
+    },
+    // Bloqueia atualizações de versão Major do Android Build-Tools
+    // para não ultrapassar a versão da API da imagem
+    {
+      matchPackageNames: [
+        'build-tools'
+      ],
+      matchDatasources: [
+        'custom.android-build-tools'
+      ],
+      matchUpdateTypes: [
+        'major'
+      ],
+      enabled: false,
+    },
+    // Mesma trava para platforms, pelo mesmo motivo
+    {
+      matchPackageNames: [
+        'platforms'
+      ],
+      matchDatasources: [
+        'custom.android-platforms'
+      ],
+      matchUpdateTypes: [
+        'major'
+      ],
+      enabled: false,
+    },
+    // Android Build-Tools, Cmdline-Tools e Platforms (Mensal)
+    {
+      matchPackageNames: [
+        'build-tools',
+        'cmdline-tools',
+        'platforms'
+      ],
+      schedule: [
+        'before 6am on the first day of the month'
+      ],
+      groupName: 'Android SDK Tools',
+    },
+  ],
+}
