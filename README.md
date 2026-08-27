@@ -11,3 +11,7 @@ Repositório que hospeda arquivos padrão e configurações compartilhadas da or
 ## Workflows Compartilhados
 
 - **[Docker Android](.github/workflows/README.md)**: Workflow completo para build, scan e publicação de imagens Docker Android.
+
+## Actions Compartilhadas
+
+- **[Docker Login](.github/actions/docker-login)**: Realiza login no Docker Hub e GHCR (GitHub Container Registry).
