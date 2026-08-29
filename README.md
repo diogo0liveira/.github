@@ -7,3 +7,7 @@ Repositório que hospeda arquivos padrão e configurações compartilhadas da or
 - **[`renovate-config-android.json5`](./renovate-config-android.json5)**: Configuração do Renovate para projetos nativos Android (Gradle, AGP, Jetpack Compose, Kotlin, GitHub Actions).
 - **[`renovate-config-docker-base.json5`](./renovate-config-docker-base.json5)**: Configuração base do Renovate para projetos Docker (gerenciador `dockerfile`).
 - **[`renovate-config-docker-android.json5`](./renovate-config-docker-android.json5)**: Configuração do Renovate para imagens Docker Android (estende `renovate-config-docker-base.json5`, habilita `custom.regex`, datasource customizado `android-cmdline-tools` e agrupamento de dependências Ruby & Fastlane).
+
+## Workflows Compartilhados
+
+- **[Docker Android](.github/workflows/README.md)**: Workflow completo para build, scan e publicação de imagens Docker Android.
