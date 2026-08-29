@@ -1,0 +1,222 @@
+name: docker-android
+
+on:
+  workflow_call:
+    inputs:
+      image_description:
+        description: 'Descrição da imagem para o label org.opencontainers.image.description'
+        required: true
+        type: string
+      platforms:
+        description: 'Plataformas (ex: linux/amd64, linux/arm64)'
+        default: 'linux/amd64'
+        type: string
+
+jobs:
+  commit-lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Validate Commits
+        uses: wagoid/commitlint-github-action@v6.2.1
+        with:
+          configFile: .github/commitlintrc.json
+
+  docker-build:
+    name: Build
+    needs: commit-lint
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7.0.1
+
+      - name: Login to Docker
+        uses: docker/login-action@v4.6.0
+        with:
+          username: ${{ secrets.DOCKERHUB_USER }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Login to GHCR
+        uses: docker/login-action@v4.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ ecrets.GITHUB_TOKEN }}
+
+      - name: Check Cache
+        id: cache
+        run: |
+          ./.github/scripts/image-check-cache.sh \
+            "ghcr.io/${{ github.repository }}:sha-${{ hashFiles('Dockerfile') }}"        
+
+      - name: Setup Build
+        if: ${{ !steps.cache.outputs.exists }}
+        uses: docker/setup-buildx-action@v4.3.0
+
+      - name: Build Local
+        if: ${{ !steps.cache.outputs.exists }}
+        uses: docker/build-push-action@v7.3.0
+        with:
+          context: .
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          tags: local-build:test
+          load: true
+
+      - name: Docker Scan
+        if: ${{ !steps.cache.outputs.exists }}
+        uses: docker/scout-action@v1.24.0
+        with:
+          command: cves
+          image: local-build:test
+          only-severities: critical
+          write-comment: true
+          exit-code: true
+
+  release-please:
+    name: Release
+    needs: [ docker-build ]
+    runs-on: ubuntu-slim
+    permissions:
+      issues: write
+      contents: write
+      pull-requests: write
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+      pr_created: ${{ steps.release.outputs.prs_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7.0.1
+
+      - name: Generate Signatory
+        id: signatory
+        uses: actions/create-github-app-token@v3.2.0
+        with:
+          client-id: ${{ vars.APP_CLIENT_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+
+      - uses: googleapis/release-please-action@v5.0.0
+        id: release
+        with:
+          token: ${{ steps.signatory.outputs.token }}
+          config-file: .github/release-please-config.json
+          manifest-file: .github/release-please-manifest.json
+
+  docker-push:
+    name: Push
+    needs: [ release-please ]
+    if: ${{ needs.release-please.outputs.pr_created || needs.release-please.outputs.release_created }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7.0.1
+
+      - name: Setup Build
+        uses: docker/setup-buildx-action@v4.3.0
+
+      - name: Login to Docker
+        uses: docker/login-action@v4.6.0
+        with:
+          username: ${{ secrets.DOCKERHUB_USER }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Login to GHCR
+        uses: docker/login-action@v4.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ ecrets.GITHUB_TOKEN }}
+
+      - name: Docker Metadata
+        id: meta
+        uses: docker/metadata-action@v6.2.0
+        with:
+          images: ghcr.io/${{ github.repository }}
+          tags: |
+            type=raw,value=sha-${{ hashFiles('Dockerfile') }}
+            type=ref,event=branch
+            type=sha,format=long
+          labels: |
+            org.opencontainers.image.source=${{ github.event.repository.html_url }}
+            org.opencontainers.image.description=${{ inputs.image_description }}
+
+      - name: Docker Push
+        uses: docker/build-push-action@v7.3.0
+        with:
+          context: .
+          platforms: ${{ inputs.platforms }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          provenance: true
+          push: true
+          sbom: true
+
+  publish:
+    name: Publish
+    needs: [ docker-build, release-please, docker-push ]
+    if: ${{ needs.release-please.outputs.release_created }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7.0.1
+
+      - name: Setup Build
+        uses: docker/setup-buildx-action@v4.3.0
+
+      - name: Image Name
+        id: image
+        run: |
+          ./.github/scripts/get-image-name.sh \
+            "${{ github.event.repository.name }}" \
+            "${{ secrets.DOCKERHUB_USER }}"
+
+      - name: Login to Docker
+        uses: docker/login-action@v4.6.0
+        with:
+          username: ${{ secrets.DOCKERHUB_USER }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Login to GHCR
+        uses: docker/login-action@v4.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ ecrets.GITHUB_TOKEN }}
+
+      - name: Publish Docker
+        id: publish
+        run: |
+          ./.github/scripts/publish-docker.sh \
+            "${{ needs.release-please.outputs.tag_name }}" \
+            "${{ github.repository }}" \
+            "${{ github.sha }}" \
+            "${{ steps.image.outputs.name }}"
+
+      - name: Cosign Install
+        uses: sigstore/cosign-installer@v4.1.2
+
+      - name: Cosign Sign
+        run: |
+          ./.github/scripts/cosign-sign.sh \
+            "${{ steps.image.outputs.name }}@${{ steps.publish.outputs.digest }}"
