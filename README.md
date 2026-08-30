@@ -18,3 +18,4 @@ Repositório que hospeda arquivos padrão e configurações compartilhadas da or
 - **[Docker Image Exists](.github/actions/docker-image-exists)**: Verifica se uma imagem Docker existe no registro para evitar builds duplicados.
 - **[Docker Image Name](.github/actions/docker-image-name)**: Gera o nome da imagem sem o prefixo `docker-` do nome do repositório.
 - **[Docker Cosign Sign](.github/actions/docker-cosign-sign)**: Realiza a assinatura digital de imagens Docker via Cosign (Keyless).
+- **[Docker Publish](.github/actions/docker-publish)**: Promove imagens entre registros usando `imagetools` (Registry-side copy).
