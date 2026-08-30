@@ -1,0 +1,56 @@
+name: 'Docker Publish'
+description: 'Publica uma imagem Docker promovendo-a de um registry para o destino (registry-side copy)'
+
+inputs:
+  repository:
+    description: 'Repositório (owner/repo)'
+    required: true
+  image:
+    description: 'Nome da imagem (user/image)'
+    required: true
+  tag:
+    description: 'Tag (v1.0.0)'
+    required: true
+  sha:
+    description: 'SHA do commit'
+    required: true
+
+outputs:
+  digest:
+    description: 'Digest SHA256 imutável da imagem publicada'
+    value: ${{ steps.publish.outputs.digest }}
+  tag:
+    description: 'Tag completa da imagem publicada (image:version)'
+    value: ${{ steps.publish.outputs.tag }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Publish Docker
+      id: publish
+      shell: bash
+      run: |
+        set -euo pipefail
+        
+        # Pega a versão limpa (sem o 'v')
+        VERSION="${{ inputs.tag }}"
+        VERSION=${VERSION#v}
+        
+        SRC="ghcr.io/${{ inputs.repository }}:sha-${{ inputs.sha }}"
+        DEST="${{ inputs.image }}:${VERSION}"
+        
+        echo "🚀 Promovendo imagem (Registry-side Copy):"
+        echo "   Origem:  $SRC"
+        echo "   Destino: $DEST"
+        
+        # Cria a nova tag no destino sem baixar as camadas (apenas manifesto)
+        docker buildx imagetools create -t "$DEST" "$SRC"
+        
+        # Captura o digest imutável da imagem recém-criada/referenciada no destino
+        DIGEST=$(docker buildx imagetools inspect "$DEST" --format "{{json .}}" | jq -r '.container_config.Config.Image // .config.digest // .manifest.digest' | cut -d'@' -f2)
+        
+        echo "digest=${DIGEST}" >> "$GITHUB_OUTPUT"
+        echo "tag=${DEST}" >> "$GITHUB_OUTPUT"
+        
+        echo "✅ Promoção concluída!"
+        echo "   Digest: ${DIGEST}"
