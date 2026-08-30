@@ -16,3 +16,4 @@ Repositório que hospeda arquivos padrão e configurações compartilhadas da or
 
 - **[Docker Login](.github/actions/docker-login)**: Realiza login no Docker Hub e GHCR (GitHub Container Registry).
 - **[Docker Image Exists](.github/actions/docker-image-exists)**: Verifica se uma imagem Docker existe no registro para evitar builds duplicados.
+- **[Docker Image Name](.github/actions/docker-image-name)**: Gera o nome da imagem sem o prefixo `docker-` do nome do repositório.
