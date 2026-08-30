@@ -1,0 +1,27 @@
+name: 'Docker Image Exists'
+description: 'Verifica se uma imagem Docker existe no registro'
+
+inputs:
+  image_ref:
+    description: 'Referência da imagem Docker'
+    required: true
+
+outputs:
+  exists:
+    description: 'Se a imagem existe'
+    value: ${{ steps.check.outputs.exists }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Check Cache
+      id: check
+      shell: bash
+      run: |
+        if docker manifest inspect "${{ inputs.image_ref }}" >/dev/null 2>&1; then
+          echo "exists=true" >> "$GITHUB_OUTPUT"
+          echo "✅ A imagem existe!"
+        else
+          echo "exists=" >> "$GITHUB_OUTPUT"
+          echo "❌ A imagem não existe."
+        fi

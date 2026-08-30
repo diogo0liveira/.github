@@ -51,9 +51,9 @@ jobs:
 
       - name: Check Cache
         id: cache
-        run: |
-          ./.github/scripts/image-check-cache.sh \
-            "ghcr.io/${{ github.repository }}:sha-${{ hashFiles('Dockerfile') }}"        
+        uses: diogo0liveira/.github/.github/actions/docker-image-exists@main
+        with:
+          image_ref: ghcr.io/${{ github.repository }}:sha-${{ hashFiles('Dockerfile') }}
 
       - name: Setup Build
         if: ${{ !steps.cache.outputs.exists }}
