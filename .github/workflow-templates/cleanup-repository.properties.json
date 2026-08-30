@@ -1,0 +1,6 @@
+{
+  "iconName": "octicon trash",
+  "name": "Cleanup Repository",
+  "description": "Limpeza seletiva do repositório (caches, actions, releases, tags, packages e histórico)",
+  "categories": ["Automation"]
+}
