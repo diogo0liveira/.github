@@ -1,0 +1,27 @@
+name: 'Docker Cosign Sign'
+description: 'Assina uma imagem Docker usando Cosign (Keyless)'
+
+inputs:
+  image_ref:
+    description: 'Referência da imagem com digest (ex: usuario/imagem@sha256:...)'
+    required: true
+
+outputs:
+  signed:
+    description: 'true se a assinatura foi realizada com sucesso'
+    value: ${{ steps.sign.outputs.signed }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Cosign Install
+      uses: sigstore/cosign-installer@v4.1.2
+
+    - name: Sign image with cosign
+      id: sign
+      shell: bash
+      env:
+        IMAGE_REF: ${{ inputs.image_ref }}
+      run: |
+        cosign sign --yes "${IMAGE_REF}"
+        echo "signed=true" >> "$GITHUB_OUTPUT"
