@@ -176,10 +176,9 @@ jobs:
 
       - name: Image Name
         id: image
-        run: |
-          ./.github/scripts/get-image-name.sh \
-            "${{ github.event.repository.name }}" \
-            "${{ secrets.DOCKERHUB_USER }}"
+        uses: diogo0liveira/.github/.github/actions/docker-image-name@main
+        with:
+          dockerhub_user: ${{ secrets.DOCKERHUB_USER }}
 
       - name: Login Docker
         uses: diogo0liveira/.github/.github/actions/docker-login@main
