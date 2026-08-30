@@ -1,0 +1,117 @@
+name: cleanup-repository
+
+concurrency:
+  group: cleanup-${{ github.repository }}-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  workflow_dispatch:
+    inputs:
+      clean_history:
+        description: 'Resetar histórico da branch principal?'
+        type: boolean
+        default: false
+      delete_caches:
+        description: 'Remover caches?'
+        type: boolean
+        default: true
+      delete_actions:
+        description: 'Remover execuções de actions?'
+        type: boolean
+        default: true
+      delete_packages:
+        description: 'Remover packages?'
+        type: boolean
+        default: true
+      delete_releases:
+        description: 'Remover releases?'
+        type: boolean
+        default: true
+      delete_tags:
+        description: 'Remover tags?'
+        type: boolean
+        default: true
+      delete_branches:
+        description: 'Remover branches (obsoletas)?'
+        type: boolean
+        default: true
+      commit_message:
+        description: 'Mensagem do commit inicial (opcional)'
+        type: string
+        default: 'chore: add project structure'
+  workflow_call:
+    inputs:
+      clean_history:
+        type: boolean
+        default: false
+      delete_caches:
+        type: boolean
+        default: true
+      delete_actions:
+        type: boolean
+        default: true
+      delete_packages:
+        type: boolean
+        default: true
+      delete_releases:
+        type: boolean
+        default: true
+      delete_tags:
+        type: boolean
+        default: true
+      delete_branches:
+        type: boolean
+        default: true
+      commit_message:
+        type: string
+        default: 'chore: add project structure'
+    secrets:
+      CLEANUP_TOKEN:
+        description: 'Token de acesso pessoal com permissões de repo e delete:packages'
+        required: true
+
+permissions:
+  actions: write
+  contents: write
+  packages: write
+
+jobs:
+  cleanup:
+    if: github.actor == github.repository_owner
+    runs-on: ubuntu-slim
+    env:
+      CLEAN_HISTORY: "${{ inputs.clean_history || github.event.inputs.clean_history == 'true' }}"
+      COMMIT_MESSAGE: "${{ inputs.commit_message || github.event.inputs.commit_message || 'chore: add project structure' }}"
+      DELETE_CACHES: "${{ inputs.delete_caches != false && github.event.inputs.delete_caches != 'false' }}"
+      DELETE_ACTIONS: "${{ inputs.delete_actions != false && github.event.inputs.delete_actions != 'false' }}"
+      DELETE_PACKAGES: "${{ inputs.delete_packages != false && github.event.inputs.delete_packages != 'false' }}"
+      DELETE_RELEASES: "${{ inputs.delete_releases != false && github.event.inputs.delete_releases != 'false' }}"
+      DELETE_TAGS: "${{ inputs.delete_tags != false && github.event.inputs.delete_tags != 'false' }}"
+      DELETE_BRANCHES: "${{ inputs.delete_branches != false && github.event.inputs.delete_branches != 'false' }}"
+    steps:
+      - name: Verificar se as secrets existem
+        run: |
+          if [ -z "${{ secrets.CLEANUP_TOKEN }}" ]; then
+            echo "ERRO: configure a secret CLEANUP_TOKEN com um PAT que tenha os escopos 'repo' e 'delete:packages'."
+            exit 1
+          fi
+
+      - name: Checkout repository
+        uses: actions/checkout@v7.0.1
+        with:
+          token: ${{ secrets.CLEANUP_TOKEN }}
+          ref: ${{ github.event.repository.default_branch }}
+          fetch-depth: 0
+
+      - name: Executar limpeza do repositório
+        uses: diogo0liveira/.github/.github/actions/cleanup-repository@main
+        with:
+          token: ${{ secrets.CLEANUP_TOKEN }}
+          clean_history: ${{ env.CLEAN_HISTORY }}
+          commit_message: ${{ env.COMMIT_MESSAGE }}
+          delete_caches: ${{ env.DELETE_CACHES }}
+          delete_actions: ${{ env.DELETE_ACTIONS }}
+          delete_packages: ${{ env.DELETE_PACKAGES }}
+          delete_releases: ${{ env.DELETE_RELEASES }}
+          delete_tags: ${{ env.DELETE_TAGS }}
+          delete_branches: ${{ env.DELETE_BRANCHES }}
