@@ -11,6 +11,7 @@ Repositório que hospeda arquivos padrão e configurações compartilhadas da or
 ## Workflows Compartilhados
 
 - **[Docker Android](.github/workflows/README.md)**: Workflow completo para build, scan e publicação de imagens Docker Android.
+- **[Cleanup Repository](.github/workflows/README.md#cleanup-repository)**: Workflow para limpeza de artefatos e reset de histórico de repositórios.
 
 ## Actions Compartilhadas
 
