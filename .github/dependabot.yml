@@ -1,0 +1,39 @@
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      timezone: "America/Sao_Paulo"
+      interval: "weekly"
+      day: "monday"
+      time: "02:00"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "github-actions"
+    reviewers:
+      - "diogo0liveira"
+    # 1. Estratégia: Sempre atualiza para a versão exata no YAML
+    versioning-strategy: increase
+    # 2. Restrição: Apenas atualizações SemVer padrão
+    allow:
+      - dependency-name: "*"
+        update-types:
+          - "version-update:semver-patch"
+          - "version-update:semver-minor"
+          - "version-update:semver-major"
+    # 3. Formato de Commit: Padrão semântico
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+    # 4. Agrupamento: Cria um único PR (opcional, mas recomendado)
+    groups:
+      patch-updates:
+        patterns: [ "*" ]
+        update-types: [ "patch" ]
+      minor-updates:
+        patterns: [ "*" ]
+        update-types: [ "minor" ]
+      major-updates:
+        patterns: [ "*" ]
+        update-types: [ "major" ]
