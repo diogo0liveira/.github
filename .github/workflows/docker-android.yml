@@ -190,12 +190,12 @@ jobs:
 
       - name: Publish Docker
         id: publish
-        run: |
-          ./.github/scripts/publish-docker.sh \
-            "${{ needs.release-please.outputs.tag_name }}" \
-            "${{ github.repository }}" \
-            "${{ github.sha }}" \
-            "${{ steps.image.outputs.name }}"
+        uses: diogo0liveira/.github/.github/actions/docker-publish@main
+        with:
+          tag: ${{ needs.release-please.outputs.tag_name }}
+          image: ${{ steps.image.outputs.name }}
+          repository: ${{ github.repository }}
+          sha: ${{ github.sha }}
 
       - name: Cosign Sign
         uses: diogo0liveira/.github/.github/actions/docker-cosign-sign@main
