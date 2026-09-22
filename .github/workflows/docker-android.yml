@@ -25,9 +25,7 @@ jobs:
           fetch-depth: 0
 
       - name: Validate Commits
-        uses: wagoid/commitlint-github-action@v6.2.1
-        with:
-          configFile: .github/commitlintrc.json
+        uses: diogo0liveira/.github/.github/actions/commit-lint@main
 
   docker-build:
     name: Build
