@@ -1,0 +1,32 @@
+name: 'Commit Lint'
+description: 'Valida as mensagens de commit utilizando o commit-lint.'
+inputs:
+  config-file:
+    description: 'Caminho para o arquivo de configuração do commit-lint. Se não for especificado usará a configuração padrão.'
+    required: false
+    default: '.github/commitlintrc.json'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Determinar arquivo de configuração
+      id: config
+      shell: bash
+      run: |
+        USER_CONFIG="${{ inputs.config-file }}"
+        DEFAULT_ACTION_CONFIG="${{ github.action_path }}/commitlintrc.json"
+
+        if [ -n "$USER_CONFIG" ] && [ -f "$USER_CONFIG" ]; then
+          echo "Usando arquivo de configuração do repositório: $USER_CONFIG"
+          echo "path=$USER_CONFIG" >> "$GITHUB_OUTPUT"
+        elif [ -f ".github/commitlintrc.json" ]; then
+          echo "Usando arquivo de configuração do repositório em .github/commitlintrc.json"
+          echo "path=.github/commitlintrc.json" >> "$GITHUB_OUTPUT"
+        else
+          echo "path=$DEFAULT_ACTION_CONFIG" >> "$GITHUB_OUTPUT"
+        fi
+
+    - name: Validate Commits
+      uses: wagoid/commitlint-github-action@v6.2.1
+      with:
+        configFile: ${{ steps.config.outputs.path }}
