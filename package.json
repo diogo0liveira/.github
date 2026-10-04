@@ -1,0 +1,27 @@
+{
+  "name": "app",
+  "version": "1.0.0",
+  "description": "Repositório que hospeda arquivos padrão e configurações compartilhadas da organização.",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/diogo0liveira/.github.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/diogo0liveira/.github/issues"
+  },
+  "homepage": "https://github.com/diogo0liveira/.github#readme",
+  "devDependencies": {
+    "jest": "^30.5.2"
+  }
+}
