@@ -1,4 +1,4 @@
-module.exports = async ({ github, owner, repo, core }) => {
+module.exports = async ({ github, owner, core }) => {
   core.startGroup('📦 Gerenciamento de Packages');
   const packageTypes = ['container', 'npm', 'maven', 'rubygems', 'nuget'];
 
