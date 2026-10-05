@@ -29,15 +29,20 @@ runs:
     - name: Publish Docker
       id: publish
       shell: bash
+      env:
+        INPUT_TAG: ${{ inputs.tag }}
+        INPUT_REPOSITORY: ${{ inputs.repository }}
+        INPUT_SHA: ${{ inputs.sha }}
+        INPUT_IMAGE: ${{ inputs.image }}
       run: |
         set -euo pipefail
         
         # Pega a versão limpa (sem o 'v')
-        VERSION="${{ inputs.tag }}"
+        VERSION="${INPUT_TAG}"
         VERSION=${VERSION#v}
         
-        SRC="ghcr.io/${{ inputs.repository }}:sha-${{ inputs.sha }}"
-        DEST="${{ inputs.image }}:${VERSION}"
+        SRC="ghcr.io/${INPUT_REPOSITORY}:sha-${INPUT_SHA}"
+        DEST="${INPUT_IMAGE}:${VERSION}"
         
         echo "🚀 Promovendo imagem (Registry-side Copy):"
         echo "   Origem:  $SRC"

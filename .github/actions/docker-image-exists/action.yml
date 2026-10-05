@@ -17,8 +17,10 @@ runs:
     - name: Check Cache
       id: check
       shell: bash
+      env:
+        IMAGE_REF: ${{ inputs.image_ref }}
       run: |
-        if docker manifest inspect "${{ inputs.image_ref }}" >/dev/null 2>&1; then
+        if docker manifest inspect "${IMAGE_REF}" >/dev/null 2>&1; then
           echo "exists=true" >> "$GITHUB_OUTPUT"
           echo "✅ A imagem existe!"
         else

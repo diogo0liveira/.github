@@ -20,9 +20,10 @@ runs:
     - name: Get image name
       id: get
       shell: bash
+      env:
+        DOCKERHUB_USER: ${{ inputs.dockerhub_user }}
+        REPO_NAME: ${{ inputs.repo_name }}
       run: |
-        DOCKERHUB_USER="${{ inputs.dockerhub_user }}"
-        REPO_NAME="${{ inputs.repo_name }}"
 
         # Se não foi passado, pega do contexto do runner (owner/repo -> pega só o repo)
         if [[ -z "$REPO_NAME" ]]; then

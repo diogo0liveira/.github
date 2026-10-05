@@ -12,9 +12,10 @@ runs:
     - name: Determinar arquivo de configuração
       id: config
       shell: bash
+      env:
+        USER_CONFIG: ${{ inputs.config-file }}
+        DEFAULT_ACTION_CONFIG: ${{ github.action_path }}/commitlintrc.json
       run: |
-        USER_CONFIG="${{ inputs.config-file }}"
-        DEFAULT_ACTION_CONFIG="${{ github.action_path }}/commitlintrc.json"
 
         if [ -n "$USER_CONFIG" ] && [ -f "$USER_CONFIG" ]; then
           echo "Usando arquivo de configuração do repositório: $USER_CONFIG"

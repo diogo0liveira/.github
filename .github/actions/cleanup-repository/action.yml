@@ -43,25 +43,32 @@ runs:
       shell: bash
       env:
         GH_TOKEN: ${{ inputs.token }}
+        DELETE_CACHES: ${{ inputs.delete_caches }}
       run: |
-        if [[ "${{ inputs.delete_caches }}" == "true" ]]; then
+        if [[ "${DELETE_CACHES}" == "true" ]]; then
           echo "--- CACHES DE ACTIONS ---"
           gh cache delete --all || echo "Nenhum cache encontrado para excluir."
         fi
 
     - name: Executar script de limpeza (Releases, Tags, Packages, Branches, Actions)
       uses: actions/github-script@v9
+      env:
+        DELETE_ACTIONS: ${{ inputs.delete_actions }}
+        DELETE_PACKAGES: ${{ inputs.delete_packages }}
+        DELETE_RELEASES: ${{ inputs.delete_releases }}
+        DELETE_BRANCHES: ${{ inputs.delete_branches }}
+        DELETE_TAGS: ${{ inputs.delete_tags }}
       with:
         github-token: ${{ inputs.token }}
         script: |
           const flags = {
-            actions: "${{ inputs.delete_actions }}",
-            packages: "${{ inputs.delete_packages }}",
-            releases: "${{ inputs.delete_releases }}",
-            branches: "${{ inputs.delete_branches }}",
-            tags: "${{ inputs.delete_tags }}"
+            actions: process.env.DELETE_ACTIONS,
+            packages: process.env.DELETE_PACKAGES,
+            releases: process.env.DELETE_RELEASES,
+            branches: process.env.DELETE_BRANCHES,
+            tags: process.env.DELETE_TAGS
           };
-          const cleanup = require('${{ github.action_path }}/cleanup.js');
+          const cleanup = require(`${process.env.GITHUB_ACTION_PATH}/cleanup.js`);
           await cleanup({github, context, core, flags});
 
     - name: Configurar Git para limpeza de histórico
