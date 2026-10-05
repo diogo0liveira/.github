@@ -4,7 +4,7 @@
   "description": "Repositório que hospeda arquivos padrão e configurações compartilhadas da organização.",
   "main": "index.js",
   "scripts": {
-    "test": "jest"
+    "test": "node --test .github/actions/cleanup-repository/cleanup.test.js && jest"
   },
   "repository": {
     "type": "git",
