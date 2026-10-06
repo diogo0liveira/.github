@@ -15,7 +15,7 @@ git status --porcelain || true
 echo "🔹 Criando branch órfã temporária..."
 git checkout --orphan tmp-clean
 
-# Adicionar os arquivos da árvore de trabalho atual
+# Adicionar arquivos da árvore de trabalho atual
 git add -A
 
 # Realizar o commit como um único commit inicial
