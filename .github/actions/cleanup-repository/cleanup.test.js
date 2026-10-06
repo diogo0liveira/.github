@@ -37,53 +37,46 @@ function mockTask(taskName) {
   };
 }
 
-// We need to load it dynamically because we want to use test runner.
-// The code uses node:test which doesn't mix well with Jest out of the box in this specific configuration if it requires node:test explicitely.
+test('cleanup-repository cleanup.js', async (t) => {
+  // Set up mocks
+  const mocks = {
+    packages: mockTask('packages'),
+    releases: mockTask('releases'),
+    branches: mockTask('branches'),
+    actions: mockTask('actions'),
+    tags: mockTask('tags')
+  };
 
-describe('cleanup-repository cleanup.js', () => {
-  let mocks;
-  let baseTools;
-  let cleanup;
+  const cleanupModulePath = require.resolve('./cleanup.js');
 
-  beforeEach(() => {
-    // Reset require cache
-    jest.resetModules();
-
-    // Mock tasks
-    mocks = {
-      packages: jest.fn(),
-      releases: jest.fn(),
-      branches: jest.fn(),
-      actions: jest.fn(),
-      tags: jest.fn()
-    };
-
-    jest.mock('./tasks/packages', () => mocks.packages);
-    jest.mock('./tasks/releases', () => mocks.releases);
-    jest.mock('./tasks/branches', () => mocks.branches);
-    jest.mock('./tasks/actions', () => mocks.actions);
-    jest.mock('./tasks/tags', () => mocks.tags);
-
-    cleanup = require('./cleanup.js');
-
-    baseTools = {
-      github: { rest: {} },
-      context: { repo: { owner: 'test-owner', repo: 'test-repo' } },
-      core: { info: jest.fn(), error: jest.fn(), startGroup: jest.fn(), endGroup: jest.fn(), warning: jest.fn() }
-    };
+  t.beforeEach(() => {
+    // Reset all mock call state
+    for (const mock of Object.values(mocks)) {
+      mock.reset();
+    }
+    // Delete cleanup module from cache to ensure fresh loads if needed,
+    // but in this case we just require it once since we mock its dependencies.
   });
 
-  it('calls all tasks by default when flags are empty', async () => {
+  const cleanup = require(cleanupModulePath);
+
+  const baseTools = {
+    github: { rest: {} },
+    context: { repo: { owner: 'test-owner', repo: 'test-repo' } },
+    core: { info: () => {}, error: () => {} }
+  };
+
+  await t.test('calls all tasks by default when flags are empty', async () => {
     await cleanup({ ...baseTools, flags: {} });
 
-    expect(mocks.actions).toHaveBeenCalled();
-    expect(mocks.packages).toHaveBeenCalled();
-    expect(mocks.releases).toHaveBeenCalled();
-    expect(mocks.branches).toHaveBeenCalled();
-    expect(mocks.tags).toHaveBeenCalled();
+    assert.ok(mocks.actions.callArgs);
+    assert.ok(mocks.packages.callArgs);
+    assert.ok(mocks.releases.callArgs);
+    assert.ok(mocks.branches.callArgs);
+    assert.ok(mocks.tags.callArgs);
   });
 
-  it('passes correct tools object to tasks', async () => {
+  await t.test('passes correct tools object to tasks', async () => {
     await cleanup({ ...baseTools, flags: {} });
 
     const expectedTools = {
@@ -94,10 +87,10 @@ describe('cleanup-repository cleanup.js', () => {
       core: baseTools.core
     };
 
-    expect(mocks.actions).toHaveBeenCalledWith(expectedTools);
+    assert.deepStrictEqual(mocks.actions.callArgs, expectedTools);
   });
 
-  it('skips tasks when flag is boolean false', async () => {
+  await t.test('skips tasks when flag is boolean false', async () => {
     await cleanup({
       ...baseTools,
       flags: {
@@ -109,14 +102,14 @@ describe('cleanup-repository cleanup.js', () => {
       }
     });
 
-    expect(mocks.actions).not.toHaveBeenCalled();
-    expect(mocks.packages).toHaveBeenCalled();
-    expect(mocks.releases).not.toHaveBeenCalled();
-    expect(mocks.branches).toHaveBeenCalled();
-    expect(mocks.tags).not.toHaveBeenCalled();
+    assert.strictEqual(mocks.actions.callArgs, null);
+    assert.ok(mocks.packages.callArgs);
+    assert.strictEqual(mocks.releases.callArgs, null);
+    assert.ok(mocks.branches.callArgs);
+    assert.strictEqual(mocks.tags.callArgs, null);
   });
 
-  it('skips tasks when flag is string "false"', async () => {
+  await t.test('skips tasks when flag is string "false"', async () => {
     await cleanup({
       ...baseTools,
       flags: {
@@ -128,18 +121,21 @@ describe('cleanup-repository cleanup.js', () => {
       }
     });
 
-    expect(mocks.actions).not.toHaveBeenCalled();
-    expect(mocks.packages).toHaveBeenCalled();
-    expect(mocks.releases).not.toHaveBeenCalled();
-    expect(mocks.branches).toHaveBeenCalled();
-    expect(mocks.tags).not.toHaveBeenCalled();
+    assert.strictEqual(mocks.actions.callArgs, null);
+    assert.ok(mocks.packages.callArgs);
+    assert.strictEqual(mocks.releases.callArgs, null);
+    assert.ok(mocks.branches.callArgs);
+    assert.strictEqual(mocks.tags.callArgs, null);
   });
 
-  it('bubbles up errors from tasks', async () => {
+  await t.test('bubbles up errors from tasks', async () => {
     const error = new Error('Test error in actions');
     mocks.actions.mockRejectedValue(error);
 
-    await expect(cleanup({ ...baseTools, flags: { actions: true } })).rejects.toThrow('Test error in actions');
+    await assert.rejects(
+      cleanup({ ...baseTools, flags: { actions: true } }),
+      error
+    );
   });
 
 });

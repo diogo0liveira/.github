@@ -72,8 +72,8 @@ Workflow para limpeza profunda de repositórios, removendo artefatos de CI e opc
 | `delete_caches`        | Remover caches do GitHub Actions                   | Não         | `true`                         |
 | `delete_actions`       | Remover histórico de execuções                     | Não         | `true`                         |
 | `delete_packages`      | Remover packages do GitHub Packages                | Não         | `true`                         |
-| `delete_releases`      | Remover as releases                          | Não         | `true`                         |
-| `delete_tags`          | Remover as tags do repositório               | Não         | `true`                         |
+| `delete_releases`      | Remover as releases                                | Não         | `true`                         |
+| `delete_tags`          | Remover as tags do repositório                     | Não         | `true`                         |
 | `delete_branches`      | Remover branches remotas obsoletas                 | Não         | `true`                         |
 
 #### Secrets
