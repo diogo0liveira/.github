@@ -56,12 +56,12 @@ Workflow para limpeza profunda de repositórios, removendo artefatos de CI e opc
 > As operações deste workflow são **irreversíveis**. A execução é estritamente manual via `workflow_dispatch`.
 
 #### Funcionalidades
-- **Caches**: Remove todos os caches do GitHub Actions.
+- **Caches**: Remove os caches do GitHub Actions.
 - **Packages**: Remove packages associados ao repositório (Container, NPM, Maven, etc).
-- **Releases & Tags**: Exclui todas as releases e tags de versão.
-- **Branches**: Remove todas as branches remotas, mantendo apenas a branch padrão.
-- **Actions**: Exclui todo o histórico de execuções de actions (logs e artefatos).
-- **Reset de Histórico**: Opcionalmente substitui todo o histórico da branch principal por um único commit inicial ("factory reset").
+- **Releases & Tags**: Exclui as releases e tags de versão.
+- **Branches**: Remove as branches remotas, mantendo apenas a branch padrão.
+- **Actions**: Exclui o histórico de execuções de actions (logs e artefatos).
+- **Reset de Histórico**: Opcionalmente substitui o histórico da branch principal por um único commit inicial ("factory reset").
 
 #### Inputs
 
@@ -72,8 +72,8 @@ Workflow para limpeza profunda de repositórios, removendo artefatos de CI e opc
 | `delete_caches`        | Remover caches do GitHub Actions                   | Não         | `true`                         |
 | `delete_actions`       | Remover histórico de execuções                     | Não         | `true`                         |
 | `delete_packages`      | Remover packages do GitHub Packages                | Não         | `true`                         |
-| `delete_releases`      | Remover todas as releases                          | Não         | `true`                         |
-| `delete_tags`          | Remover todas as tags do repositório               | Não         | `true`                         |
+| `delete_releases`      | Remover as releases                          | Não         | `true`                         |
+| `delete_tags`          | Remover as tags do repositório               | Não         | `true`                         |
 | `delete_branches`      | Remover branches remotas obsoletas                 | Não         | `true`                         |
 
 #### Secrets
