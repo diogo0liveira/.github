@@ -8,7 +8,7 @@ module.exports = async ({ github, owner, repo, core }) => {
     });
     core.info(`Encontradas ${releases.length} releases`);
 
-    for (const r of releases) {
+    await Promise.all(releases.map(async (r) => {
       core.info(`  🗑️ Excluindo Release: ${r.tag_name} (id: ${r.id})`);
       try {
         await github.rest.repos.deleteRelease({
@@ -20,7 +20,7 @@ module.exports = async ({ github, owner, repo, core }) => {
       } catch (err) {
         core.error(`    ❌ Erro ao excluir release ${r.id}: ${err.message}`);
       }
-    }
+    }));
   } catch (err) {
     core.warning(`⚠️ Falha ao processar releases: ${err.message}`);
   }
