@@ -1,7 +1,3 @@
-const test = require('node:test');
-const assert = require('node:assert');
-const path = require('path');
-
 // Helper to mock required tasks using require.cache
 function mockTask(taskName) {
   const fullPath = require.resolve(`./tasks/${taskName}`);
