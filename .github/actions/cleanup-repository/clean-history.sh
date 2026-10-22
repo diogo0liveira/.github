@@ -23,9 +23,11 @@ echo "🔹 Criando novo commit de estrutura do projeto..."
 git commit -m "${COMMIT_MESSAGE:-chore: add project structure} [skip ci]" || true
 
 # Force-push da branch órfã para a branch principal de destino
-# A URL utiliza o token para autenticação
+# A URL utiliza o token via credential.helper para evitar vazamento em logs
 echo "📤 Fazendo force-push da branch limpa para origin/${MAIN_BRANCH}..."
-git push --force "https://${CLEANUP_TOKEN}@github.com/${REPOSITORY}.git" tmp-clean:"${MAIN_BRANCH}"
+git config --local credential.helper '!f() { echo "username=x-access-token"; echo "password=${CLEANUP_TOKEN}"; }; f'
+git push --force "https://github.com/${REPOSITORY}.git" tmp-clean:"${MAIN_BRANCH}"
+git config --local --unset credential.helper || true
 
 # Limpeza: retornar para a branch principal local e remover a temporária
 git checkout "${MAIN_BRANCH}"
