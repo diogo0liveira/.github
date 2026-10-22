@@ -14,7 +14,7 @@ module.exports = async ({ github, owner, repo, context, core }) => {
       core.info('✨ Nenhuma execução de workflow encontrada para excluir (além da atual).');
     } else {
       core.info(`🔹 Encontradas ${toDelete.length} execuções de workflow para remover.`);
-      for (const run of toDelete) {
+      const deletePromises = toDelete.map(async (run) => {
         try {
           await github.rest.actions.deleteWorkflowRun({
             owner,
@@ -25,7 +25,8 @@ module.exports = async ({ github, owner, repo, context, core }) => {
         } catch (err) {
           core.error(`  ❌ Erro ao excluir execução ${run.id}: ${err.message}`);
         }
-      }
+      });
+      await Promise.allSettled(deletePromises);
     }
   } catch (err) {
     core.error(`⚠️ Falha ao processar workflow runs: ${err.message}`);
