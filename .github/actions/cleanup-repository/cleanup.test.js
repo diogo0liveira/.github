@@ -1,38 +1,3 @@
-// Helper to mock required tasks using require.cache
-function mockTask(taskName) {
-  const fullPath = require.resolve(`./tasks/${taskName}`);
-  let callArgs = null;
-  let throwError = null;
-
-  require.cache[fullPath] = {
-    id: fullPath,
-    filename: fullPath,
-    loaded: true,
-    exports: async (tools) => {
-      if (throwError) {
-        throw throwError;
-      }
-      callArgs = tools;
-    }
-  };
-
-  return {
-    get callArgs() {
-      return callArgs;
-    },
-    mockImplementation(impl) {
-      require.cache[fullPath].exports = impl;
-    },
-    mockRejectedValue(err) {
-      throwError = err;
-    },
-    reset() {
-      callArgs = null;
-      throwError = null;
-    }
-  };
-}
-
 // We need to load it dynamically because we want to use test runner.
 // The code uses node:test which doesn't mix well with Jest out of the box in this specific configuration if it requires node:test explicitely.
 
