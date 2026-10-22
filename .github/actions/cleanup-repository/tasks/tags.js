@@ -9,7 +9,7 @@ module.exports = async ({ github, owner, repo, core }) => {
     });
     core.info(`Encontradas ${refs.length} refs de tags`);
 
-    for (const ref of refs) {
+    const deletionPromises = refs.map(async (ref) => {
       const tagRef = ref.ref.replace(/^refs\//, '');
       core.info(`  🗑️ Excluindo Ref: ${tagRef}`);
       try {
@@ -22,7 +22,9 @@ module.exports = async ({ github, owner, repo, core }) => {
       } catch (err) {
         core.error(`    ❌ Erro ao excluir ref ${tagRef}: ${err.message}`);
       }
-    }
+    });
+
+    await Promise.all(deletionPromises);
   } catch (err) {
     if (err.status !== 404) {
       core.warning(`⚠️ Problema ao processar tags: ${err.message}`);
