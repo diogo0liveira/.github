@@ -1,5 +1,3 @@
-
-
 // We need to load it dynamically because we want to use test runner.
 // The code uses node:test which doesn't mix well with Jest out of the box in this specific configuration if it requires node:test explicitely.
 
