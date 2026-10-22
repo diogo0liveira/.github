@@ -1,0 +1,8 @@
+🎯 **What:**
+The `CLEANUP_TOKEN` was being interpolated directly into the `git push` URL in `.github/actions/cleanup-repository/clean-history.sh`.
+
+⚠️ **Risk:**
+When the authentication token is passed directly in the URL via variable interpolation, it is at high risk of being leaked. If an error occurs, or if debug logging (like `set -x` in bash) is enabled, the fully expanded URL containing the secret token will be printed to the CI logs in plain text.
+
+🛡️ **Solution:**
+Replaced the inline token interpolation in the URL with a Git `credential.helper`. The helper dynamically supplies the token using the `${CLEANUP_TOKEN}` environment variable only when Git requests authentication, preventing the token from being exposed in logs or command lists.
