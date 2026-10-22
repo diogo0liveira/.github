@@ -12,7 +12,7 @@ module.exports = async ({ github, owner, core }) => {
 
       if (packages.length > 0) {
         core.info(`🔹 Tipo [${ptype.toUpperCase()}]: ${packages.length} packages encontrados`);
-        for (const pkg of packages) {
+        await Promise.all(packages.map(async (pkg) => {
           core.info(`  🗑️ Excluindo Package: ${pkg.name}`);
           try {
             await github.rest.packages.deletePackageForUser({
@@ -24,7 +24,7 @@ module.exports = async ({ github, owner, core }) => {
           } catch (err) {
             core.error(`    ❌ Erro ao excluir package ${pkg.name}: ${err.message}`);
           }
-        }
+        }));
       }
     } catch (err) {
       if (err.status && err.status !== 404) {
